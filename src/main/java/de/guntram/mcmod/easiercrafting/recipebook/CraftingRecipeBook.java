@@ -5,10 +5,12 @@ import de.guntram.mcmod.easiercrafting.extendedScreen.ExtendedInventoryScreen;
 import de.guntram.mcmod.easiercrafting.modConfig.ModConfig;
 import de.guntram.mcmod.easiercrafting.recipe.RecipeTreeSet;
 import de.guntram.mcmod.easiercrafting.recipe.RepairCraftingRecipeDisplay;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -187,8 +189,10 @@ public class CraftingRecipeBook extends AbstractRecipeBook {
         List<Ingredient> recipeInput = entry.craftingRequirements().orElse(Collections.emptyList());
         if (recipeInput.isEmpty()) return;
 
+        var resultStack = entry.display().result().resolveForFirstStack(worldContext);
+        Item resultItem = resultStack.getItem();
         int maxCraftableStacks = 1;
-        int rowadjust = 0;
+        int rowAdjust = 0;
         int recipeWidth;
         List<SlotDisplay> ingredients;
 
@@ -238,8 +242,8 @@ public class CraftingRecipeBook extends AbstractRecipeBook {
                     } else continue;
                 }
                 else if (!canActAsIngredient(ingredient, slotcontent)) continue;
-                transfer(slot, i + FIRST_CRAFT_SLOT + rowadjust, remaining);
-                ItemStack inCraftSlot = screenHandler.getSlot(i + FIRST_CRAFT_SLOT + rowadjust).getItem();
+                transfer(slot, i + FIRST_CRAFT_SLOT + rowAdjust, remaining);
+                ItemStack inCraftSlot = screenHandler.getSlot(i + FIRST_CRAFT_SLOT + rowAdjust).getItem();
                 remaining = maxCraftableStacks - inCraftSlot.getCount();
                 if (inCraftSlot.getCraftingRemainder()!=null && inCraftSlot.getCraftingRemainder().count()>0) {
                     removal[i] = true;
@@ -247,7 +251,7 @@ public class CraftingRecipeBook extends AbstractRecipeBook {
 
             }
             if (recipeWidth > 0 && (i + 1) % recipeWidth == 0) {
-                rowadjust += GRID_SIZE - recipeWidth;
+                rowAdjust += GRID_SIZE - recipeWidth;
             }
         }
 
@@ -257,10 +261,12 @@ public class CraftingRecipeBook extends AbstractRecipeBook {
             if (isHoldingButton(GLFW.GLFW_KEY_Q)){
                 if (isHoldingButton(GLFW.GLFW_KEY_LEFT_SHIFT)) {
                     // icl but lazy method works well...
-                    ItemStack resultStack = entry.display().result().resolveForFirstStack(worldContext);
                     LOGGER.info("throw craft all: {} {}", maxCraftableStacks, resultStack.getCount());
 
-                    if (resultStack.getCount()*maxCraftableStacks <= resultStack.getMaxStackSize() && screenHandler.getSlot(FIRST_INV_SLOT +35).getItem().getItem()!=resultStack.getItem()) {
+                    int totalCraft = resultStack.getCount()*maxCraftableStacks;
+                    int resultMaxStackSize = resultStack.getMaxStackSize();
+
+                    if (totalCraft <= resultMaxStackSize && screenHandler.getSlot(FIRST_INV_SLOT +35).getItem().getItem()!=resultStack.getItem()) {
                         // special case where dont need to repeat throw
                         LOGGER.info("trying quick method of quick craft");
                         slotClick(FIRST_RESULT_SLOT, 0, ContainerInput.PICKUP);
@@ -273,6 +279,47 @@ public class CraftingRecipeBook extends AbstractRecipeBook {
                         break craft;
                     }
 
+                    // another shortcut
+                    // celling div
+                    int requiringSlotsCount = (totalCraft+resultMaxStackSize-1)/resultMaxStackSize;
+                    boolean alreadyHad = false;
+                    NonNullList<Slot> slots = screenHandler.slots;
+                    final IntArrayList emptySlots = new IntArrayList(slots.size()-FIRST_INV_SLOT);
+                    for (int i = FIRST_INV_SLOT, slotsSize = slots.size(); i < slotsSize; i++) {
+                        var slot = slots.get(i);
+                        if (slot.getItem().getItem() == resultItem) {
+                            alreadyHad = true;
+                            break;
+                        }
+                        if (slot.getItem().isEmpty()) {
+                            emptySlots.add(i);
+                            if (emptySlots.size() >= requiringSlotsCount) {
+                                break;
+                            }
+                        }
+                    }
+                    if (!alreadyHad && requiringSlotsCount <= emptySlots.size()) {
+                        for (int i = 0, limit = (requiringSlotsCount + resultStack.getCount() - 1) / resultStack.getCount(); i < limit; i++) {
+                            slotClick(FIRST_RESULT_SLOT, 0, ContainerInput.PICKUP);
+                        }
+                        for (int i = 0; i < requiringSlotsCount-1; i++) {
+                            var slotIndex = emptySlots.getInt(i);
+                            slotClick(slotIndex, 1, ContainerInput.PICKUP);
+                        }
+
+                        slotClick(emptySlots.getInt(requiringSlotsCount-1), 0, ContainerInput.PICKUP);
+                        slotClick(FIRST_RESULT_SLOT, 0, ContainerInput.QUICK_MOVE);
+
+                        for (int i = 0; i < requiringSlotsCount; i++) {
+                            var slotIndex = emptySlots.getInt(i);
+                            LOGGER.info("extra slot: {}",slotIndex);
+                            slotClick(slotIndex, 1, ContainerInput.THROW);
+                        }
+                        break craft;
+                    }
+
+
+                    // lazy default
                     for (int i = 0; i < maxCraftableStacks; i++) {
                         slotClick(FIRST_RESULT_SLOT, 1, ContainerInput.THROW);
                     }
@@ -284,19 +331,37 @@ public class CraftingRecipeBook extends AbstractRecipeBook {
             }
             queueUpdateRecipe();
 
-            rowadjust = 0;
             // remove leftover
-            for (int i = 0; i < removal.length; i++) {
-                if (removal[i]) {
-                    slotClick(FIRST_CRAFT_SLOT + i + rowadjust, 0, ContainerInput.QUICK_MOVE);
+            removeLeftover(recipeWidth, removal);
+        } else if (isHoldingButton(GLFW.GLFW_KEY_Q) && isHoldingButton(GLFW.GLFW_KEY_LEFT_SHIFT)) {
+            LOGGER.info(resultItem.getDescriptionId());
+            slotClick(FIRST_RESULT_SLOT, 0, ContainerInput.QUICK_MOVE);
+            for (var slot : screenHandler.slots) {
+                if (slot.index <= FIRST_INV_SLOT) {
+                    continue;
                 }
-                if (recipeWidth > 0 && (i + 1) % recipeWidth == 0) {
-                    rowadjust += GRID_SIZE - recipeWidth;
+                if (slot.getItem().getItem() == resultItem) {
+                    slotClick(slot.index, 1, ContainerInput.THROW);
                 }
             }
+
+            // remove leftover
+            removeLeftover(recipeWidth, removal);
         }
         // prevent shift craft multiple stack last stack craft wrong
         updateRecipes();
+    }
+
+    private void removeLeftover(int recipeWidth, boolean[] removal) {
+        int rowAdjust = 0;
+        for (int i = 0; i < removal.length; i++) {
+            if (removal[i]) {
+                slotClick(FIRST_CRAFT_SLOT + i + rowAdjust, 0, ContainerInput.QUICK_MOVE);
+            }
+            if (recipeWidth > 0 && (i + 1) % recipeWidth == 0) {
+                rowAdjust += GRID_SIZE - recipeWidth;
+            }
+        }
     }
 
     private boolean canActAsIngredient(SlotDisplay ingredient, ItemStack inventoryItem) {

@@ -54,3 +54,16 @@ java {
 jar {
     from "LICENSE"
 }
+
+loom {
+    runs {
+        client {
+            client()
+            name "Minecraft Client"
+            runDir "run"
+
+            // Sets your player name exactly to "Dev"
+            programArgs "--username", "Dev"
+        }
+    }
+}
