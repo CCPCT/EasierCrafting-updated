@@ -58,11 +58,7 @@ jar {
 loom {
     runs {
         client {
-            client()
-            name "Minecraft Client"
-            runDir "run"
-
-            // Sets your player name exactly to "Dev"
+            programArgs "--quickPlaySingleplayer", "New World"
             programArgs "--username", "Dev"
         }
     }
