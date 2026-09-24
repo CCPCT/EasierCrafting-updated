@@ -431,7 +431,7 @@ public abstract class AbstractRecipeBook {
         } else if (pattern.isFocused()) {
             pattern.keyPressed(input);
             updatePatternMatch();
-        } else if (EasierCrafting.refreshRecipeKey.isDown()){
+        } else if (EasierCrafting.refreshRecipeKey.matches(input)){
             // pressed refresh key
             recipeUpdateTime = System.currentTimeMillis();
         } else {
@@ -542,6 +542,9 @@ public abstract class AbstractRecipeBook {
         return InputConstants.isKeyDown(window, button);
     }
 
+    boolean isHoldingThrow() {
+        return InputConstants.isKeyDown(window, InputConstants.getKey(Minecraft.getInstance().options.keyDrop.saveString()).getValue());
+    }
 
 }
 

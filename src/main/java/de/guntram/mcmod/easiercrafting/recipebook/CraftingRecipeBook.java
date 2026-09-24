@@ -258,7 +258,7 @@ public class CraftingRecipeBook extends AbstractRecipeBook {
         // actually craft item: hold control or right click to not instantly craft, hold q to drop
         if (mouseButton == 0 && !isHoldingButton(GLFW.GLFW_KEY_LEFT_CONTROL)) {
             craft:
-            if (isHoldingButton(GLFW.GLFW_KEY_Q)){
+            if (isHoldingThrow()){
                 if (isHoldingButton(GLFW.GLFW_KEY_LEFT_SHIFT)) {
                     // icl but lazy method works well...
                     LOGGER.info("throw craft all: {} {}", maxCraftableStacks, resultStack.getCount());
@@ -333,7 +333,7 @@ public class CraftingRecipeBook extends AbstractRecipeBook {
 
             // remove leftover
             removeLeftover(recipeWidth, removal);
-        } else if (isHoldingButton(GLFW.GLFW_KEY_Q) && isHoldingButton(GLFW.GLFW_KEY_LEFT_SHIFT)) {
+        } else if (isHoldingThrow() && isHoldingButton(GLFW.GLFW_KEY_LEFT_SHIFT)) {
             LOGGER.info(resultItem.getDescriptionId());
             slotClick(FIRST_RESULT_SLOT, 0, ContainerInput.QUICK_MOVE);
             for (var slot : screenHandler.slots) {
