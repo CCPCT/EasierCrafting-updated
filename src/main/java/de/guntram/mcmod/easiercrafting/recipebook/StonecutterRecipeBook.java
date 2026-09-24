@@ -99,7 +99,7 @@ public class StonecutterRecipeBook extends AbstractRecipeBook {
 
             // 4. Take the result from the output slot (slot 1) to complete the craft
             if (isHoldingButton(GLFW.GLFW_KEY_LEFT_CONTROL)) return;
-            slotClick(1, 0, isHoldingButton(GLFW.GLFW_KEY_Q) ? ContainerInput.THROW : ContainerInput.QUICK_MOVE);
+            slotClick(1, 0, isHoldingThrow() ? ContainerInput.THROW : ContainerInput.QUICK_MOVE);
         }
     }
 

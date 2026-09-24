@@ -61,7 +61,7 @@ public class FurnaceRecipeBook extends AbstractRecipeBook {
 
         // retrieve/ throw smelt items
         if (container.slots.get(FIRST_RESULT_SLOT).hasItem() && !isHoldingButton(GLFW.GLFW_KEY_LEFT_CONTROL)) {
-            slotClick(FIRST_RESULT_SLOT,1,isHoldingButton(GLFW.GLFW_KEY_Q) ? ContainerInput.THROW : ContainerInput.QUICK_MOVE);
+            slotClick(FIRST_RESULT_SLOT,1, isHoldingThrow() ? ContainerInput.THROW : ContainerInput.QUICK_MOVE);
         }
 
         // replenish fuel if possible, if fuel slot is empty let player decide what fuel to use
