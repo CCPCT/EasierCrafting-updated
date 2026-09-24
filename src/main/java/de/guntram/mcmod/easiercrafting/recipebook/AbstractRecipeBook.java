@@ -396,10 +396,10 @@ public abstract class AbstractRecipeBook {
 
     public void mouseClicked(MouseButtonEvent click, boolean doubled, int guiLeft, int guiTop) {
         if (pattern != null) {
-            boolean clickedPattern = pattern.mouseClicked(new MouseButtonEvent(click.x(),click.y(),new MouseButtonInfo(0,0)), doubled);
+            boolean clickedPattern = pattern.mouseClicked(new MouseButtonEvent(click.x(),click.y(),new MouseButtonInfo(LMB,0)), doubled);
             pattern.setFocused(clickedPattern);
             if (clickedPattern) {
-                if (click.button() == 1) {
+                if (click.button() == RMB) {
                     pattern.setValue("");
                     updatePatternMatch();
                 }
