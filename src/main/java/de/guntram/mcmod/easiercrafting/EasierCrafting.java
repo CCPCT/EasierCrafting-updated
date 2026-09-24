@@ -15,12 +15,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.RecipeBookCategory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.lwjgl.glfw.GLFW;
-
 
 public class EasierCrafting implements ClientModInitializer
 {
@@ -32,6 +31,7 @@ public class EasierCrafting implements ClientModInitializer
     private static String ip;
 
     public static KeyMapping refreshRecipeKey;
+    static boolean refreshKeyWasDown = false;
 
     @Override
     public void onInitializeClient() {
@@ -48,8 +48,8 @@ public class EasierCrafting implements ClientModInitializer
 
         refreshRecipeKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
                 "Refresh Recipe List", // translation key
-                InputConstants.Type.KEYSYM,
-                GLFW.GLFW_KEY_TAB,       // default key
+                InputConstants.Type.KEYBOARD,
+                InputConstants.KEY_TAB,       // default key
                 KeyMapping.Category.register(Identifier.fromNamespaceAndPath(MODID, "keymap"))      // category in controls menu
         ));
 
@@ -112,4 +112,7 @@ public class EasierCrafting implements ClientModInitializer
         return ip;
     }
 
+    public static void debug(String message) {
+        if (ModConfig.get().debug) Minecraft.getInstance().player.sendSystemMessage(Component.literal(message));
+    }
 }

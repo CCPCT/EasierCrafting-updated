@@ -1,5 +1,6 @@
 package de.guntram.mcmod.easiercrafting.recipebook;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import de.guntram.mcmod.easiercrafting.modConfig.ModConfig;
 import de.guntram.mcmod.easiercrafting.recipe.RecipeTreeSet;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -17,7 +18,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.display.FurnaceRecipeDisplay;
 import net.minecraft.world.item.crafting.display.RecipeDisplayEntry;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
 
@@ -60,8 +60,8 @@ public class FurnaceRecipeBook extends AbstractRecipeBook {
         ItemStack fuelStack = container.slots.get(FUEL_SLOT).getItem();
 
         // retrieve/ throw smelt items
-        if (container.slots.get(FIRST_RESULT_SLOT).hasItem() && !isHoldingButton(GLFW.GLFW_KEY_LEFT_CONTROL)) {
-            slotClick(FIRST_RESULT_SLOT,1,isHoldingButton(GLFW.GLFW_KEY_Q) ? ContainerInput.THROW : ContainerInput.QUICK_MOVE);
+        if (container.slots.get(FIRST_RESULT_SLOT).hasItem() && !isHoldingButton(InputConstants.KEY_LCONTROL)) {
+            slotClick(FIRST_RESULT_SLOT,1,isHoldingThrow() ? ContainerInput.THROW : ContainerInput.QUICK_MOVE);
         }
 
         // replenish fuel if possible, if fuel slot is empty let player decide what fuel to use
@@ -113,7 +113,7 @@ public class FurnaceRecipeBook extends AbstractRecipeBook {
                         slotClick(FIRST_CRAFT_SLOT,0,ContainerInput.QUICK_MOVE);
                     }
                     // move item up
-                    if (isHoldingButton(GLFW.GLFW_KEY_LEFT_SHIFT)) {
+                    if (isHoldingButton(InputConstants.KEY_LSHIFT)) {
                         slotClick(slot, 0, ContainerInput.PICKUP);
                         slotClick(slot, 0, ContainerInput.PICKUP_ALL);
                         slotClick(FIRST_CRAFT_SLOT, 0, ContainerInput.PICKUP);
@@ -171,7 +171,7 @@ public class FurnaceRecipeBook extends AbstractRecipeBook {
         if (canCraft){
             int i;
             Item item = null;
-            if (isHoldingButton(GLFW.GLFW_KEY_LEFT_SHIFT)){
+            if (isHoldingButton(InputConstants.KEY_LSHIFT)){
                 for (i=0; i<recipe.ingredient().resolveForStacks(worldContext).size(); i++){
                     item = recipe.ingredient().resolveForStacks(worldContext).get(i).getItem();
                     if (avaliableItemMap.containsKey(item)){

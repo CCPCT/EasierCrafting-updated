@@ -1,5 +1,6 @@
 package de.guntram.mcmod.easiercrafting.recipebook;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import de.guntram.mcmod.easiercrafting.modConfig.ModConfig;
 import de.guntram.mcmod.easiercrafting.recipe.RecipeTreeSet;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -19,7 +20,6 @@ import net.minecraft.world.item.crafting.SelectableRecipe;
 import net.minecraft.world.item.crafting.StonecutterRecipe;
 import net.minecraft.world.item.crafting.display.RecipeDisplayEntry;
 import net.minecraft.world.item.crafting.display.StonecutterRecipeDisplay;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
 
@@ -66,7 +66,7 @@ public class StonecutterRecipeBook extends AbstractRecipeBook {
             ItemStack slotContent = container.getSlot(slot).getItem();
             for (ItemStack ingredientStack : recipe.input().resolveForStacks(worldContext)) {
                 if (ingredientStack.getItem().equals(slotContent.getItem())){
-                    if (isHoldingButton(GLFW.GLFW_KEY_LEFT_SHIFT)) {
+                    if (isHoldingButton(InputConstants.KEY_LSHIFT)) {
                         slotClick(slot, 0, ContainerInput.PICKUP);
                         slotClick(slot, 0, ContainerInput.PICKUP_ALL);
                         slotClick(FIRST_CRAFT_SLOT, 0, ContainerInput.PICKUP);
@@ -98,8 +98,8 @@ public class StonecutterRecipeBook extends AbstractRecipeBook {
             interactionManager.handleInventoryButtonClick(container.containerId, buttonIndex);
 
             // 4. Take the result from the output slot (slot 1) to complete the craft
-            if (isHoldingButton(GLFW.GLFW_KEY_LEFT_CONTROL)) return;
-            slotClick(1, 0, isHoldingButton(GLFW.GLFW_KEY_Q) ? ContainerInput.THROW : ContainerInput.QUICK_MOVE);
+            if (isHoldingButton(InputConstants.KEY_LCONTROL) || mouseButton != LMB) return;
+            slotClick(1, 0, isHoldingThrow() ? ContainerInput.THROW : ContainerInput.QUICK_MOVE);
         }
     }
 
@@ -111,7 +111,7 @@ public class StonecutterRecipeBook extends AbstractRecipeBook {
         if (canCraft){
             int i;
             Item item = null;
-            if (isHoldingButton(GLFW.GLFW_KEY_LEFT_SHIFT)){
+            if (isHoldingButton(InputConstants.KEY_LSHIFT)){
                 for (i=0; i<recipe.input().resolveForStacks(worldContext).size(); i++){
                     item = recipe.input().resolveForStacks(worldContext).get(i).getItem();
                     if (avaliableItemMap.containsKey(item)){

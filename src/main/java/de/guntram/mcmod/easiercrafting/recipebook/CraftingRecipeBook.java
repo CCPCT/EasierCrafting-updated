@@ -1,5 +1,6 @@
 package de.guntram.mcmod.easiercrafting.recipebook;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import de.guntram.mcmod.easiercrafting.EasierCrafting;
 import de.guntram.mcmod.easiercrafting.extendedScreen.ExtendedInventoryScreen;
 import de.guntram.mcmod.easiercrafting.modConfig.ModConfig;
@@ -23,11 +24,11 @@ import net.minecraft.world.item.component.Fireworks;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeBookCategories;
 import net.minecraft.world.item.crafting.display.*;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
 
 import static de.guntram.mcmod.easiercrafting.EasierCrafting.SPECIAL_CAT;
+import static de.guntram.mcmod.easiercrafting.EasierCrafting.debug;
 
 public class CraftingRecipeBook extends AbstractRecipeBook {
 
@@ -119,12 +120,12 @@ public class CraftingRecipeBook extends AbstractRecipeBook {
             case ShapedCraftingRecipeDisplay shaped -> {
                 recipeWidth = shaped.width();
                 ingredients = shaped.ingredients();
-                if (isHoldingButton(GLFW.GLFW_KEY_LEFT_SHIFT)) maxCraftableStacks = getMaxCraftable(ingredients);
+                if (isHoldingButton(InputConstants.KEY_LSHIFT)) maxCraftableStacks = getMaxCraftable(ingredients);
             }
             case ShapelessCraftingRecipeDisplay shapeless -> {
                 ingredients = shapeless.ingredients();
                 recipeWidth = GRID_SIZE;
-                if (isHoldingButton(GLFW.GLFW_KEY_LEFT_SHIFT)) maxCraftableStacks = getMaxCraftable(ingredients);
+                if (isHoldingButton(InputConstants.KEY_LSHIFT)) maxCraftableStacks = getMaxCraftable(ingredients);
             }
             case RepairCraftingRecipeDisplay repairDisplay -> {
                 // repair formular: durability = min(Item A uses + Item B uses + floor(Max uses / 20), Max uses) (from wiki)
@@ -200,12 +201,12 @@ public class CraftingRecipeBook extends AbstractRecipeBook {
             case ShapedCraftingRecipeDisplay shaped -> {
                 recipeWidth = shaped.width();
                 ingredients = shaped.ingredients();
-                if (isHoldingButton(GLFW.GLFW_KEY_LEFT_SHIFT)) maxCraftableStacks = getMaxCraftable(ingredients);
+                if (isHoldingButton(InputConstants.KEY_LSHIFT)) maxCraftableStacks = getMaxCraftable(ingredients);
             }
             case ShapelessCraftingRecipeDisplay shapeless -> {
                 ingredients = shapeless.ingredients();
                 recipeWidth = ingredients.size() <= 4 ? 2 : 3;
-                if (isHoldingButton(GLFW.GLFW_KEY_LEFT_SHIFT)) maxCraftableStacks = getMaxCraftable(ingredients);
+                if (isHoldingButton(InputConstants.KEY_LSHIFT)) maxCraftableStacks = getMaxCraftable(ingredients);
             }
             case RepairCraftingRecipeDisplay repairDisplay -> {
                 ingredients = repairDisplay.ingredients();
@@ -256,10 +257,10 @@ public class CraftingRecipeBook extends AbstractRecipeBook {
         }
 
         // actually craft item: hold control or right click to not instantly craft, hold q to drop
-        if (mouseButton == 0 && !isHoldingButton(GLFW.GLFW_KEY_LEFT_CONTROL)) {
+        if (mouseButton == LMB && !isHoldingButton(InputConstants.KEY_LCONTROL)) {
             craft:
-            if (isHoldingButton(GLFW.GLFW_KEY_Q)){
-                if (isHoldingButton(GLFW.GLFW_KEY_LEFT_SHIFT)) {
+            if (isHoldingThrow()){
+                if (isHoldingButton(InputConstants.KEY_LSHIFT)) {
                     // icl but lazy method works well...
                     LOGGER.info("throw craft all: {} {}", maxCraftableStacks, resultStack.getCount());
 
@@ -333,7 +334,7 @@ public class CraftingRecipeBook extends AbstractRecipeBook {
 
             // remove leftover
             removeLeftover(recipeWidth, removal);
-        } else if (isHoldingButton(GLFW.GLFW_KEY_Q) && isHoldingButton(GLFW.GLFW_KEY_LEFT_SHIFT)) {
+        } else if (isHoldingThrow() && isHoldingButton(InputConstants.KEY_LSHIFT)) {
             LOGGER.info(resultItem.getDescriptionId());
             slotClick(FIRST_RESULT_SLOT, 0, ContainerInput.QUICK_MOVE);
             for (var slot : screenHandler.slots) {

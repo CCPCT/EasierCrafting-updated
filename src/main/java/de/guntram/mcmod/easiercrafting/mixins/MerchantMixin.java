@@ -3,6 +3,7 @@ package de.guntram.mcmod.easiercrafting.mixins;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.platform.Window;
 import de.guntram.mcmod.easiercrafting.modConfig.ModConfig;
+import de.guntram.mcmod.easiercrafting.recipebook.AbstractRecipeBook;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.MerchantScreen;
@@ -11,7 +12,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.item.ItemStack;
-import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -33,13 +33,13 @@ public abstract class MerchantMixin extends Screen {
     )
     private void onTradeSelected(MouseButtonEvent event, boolean doubleClick, CallbackInfoReturnable<Boolean> cir) {
         // Only trigger on left-click (button 0) to avoid ghost actions on right/middle click
-        if (event.button() != 0) return;
+        if (event.button() != AbstractRecipeBook.LMB) return;
 
         Window window = Minecraft.getInstance().getWindow();
         Minecraft client = Minecraft.getInstance();
 
         if (!ModConfig.get().enableTrading
-                || InputConstants.isKeyDown(window, InputConstants.KEY_LCONTROL)
+                || InputConstants.isKeyDown(InputConstants.KEY_LCONTROL)
                 || client.player.containerMenu.getSlot(2).getItem().isEmpty()) {
             return;
         }
@@ -60,10 +60,10 @@ public abstract class MerchantMixin extends Screen {
 
         AbstractContainerMenu currentScreenHandler = client.player.containerMenu;
         var syncId = currentScreenHandler.containerId;
-        boolean holdingQ = InputConstants.isKeyDown(window, GLFW.GLFW_KEY_Q);
+        boolean holdingQ = Minecraft.getInstance().options.keyDrop.isDown();
 
         // 1. Shift Click Behavior (Restored Q-throw functionality)
-        if (InputConstants.isKeyDown(window, GLFW.GLFW_KEY_LEFT_SHIFT)) {
+        if (InputConstants.isKeyDown(InputConstants.KEY_LSHIFT)) {
             ContainerInput action = holdingQ ? ContainerInput.THROW : ContainerInput.QUICK_MOVE;
             // For throwing a whole stack, standard click data parameter is 1 instead of 0
             int clickData = holdingQ ? 1 : 0;

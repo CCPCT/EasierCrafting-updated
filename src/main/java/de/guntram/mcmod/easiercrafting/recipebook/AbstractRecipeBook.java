@@ -50,7 +50,7 @@ public abstract class AbstractRecipeBook {
     protected final Logger LOGGER;
     static final Object2IntOpenHashMap<Item> avaliableItemMap = new Object2IntOpenHashMap<>(36);
     ContextMap worldContext;
-    public static final ContextMap EMPTY_CONTEXT = new ContextMap.Builder().create(new ContextKeySet.Builder().build());
+    public static final ContextMap EMPTY_CONTEXT = ContextMap.builder().build();  //new ContextMap.Builder().create(new ContextKeySet.Builder().build());
 
 
 
@@ -68,6 +68,8 @@ public abstract class AbstractRecipeBook {
     protected int categoryHash = 0;
     public final String DEFAULT_CAT = I18n.get("easiercrafting.category.possible");
     List<RecipeBookCategory> RecipeBookCats;
+
+    protected boolean throwDown = false;
 
     protected final Window window;
 
@@ -102,6 +104,11 @@ public abstract class AbstractRecipeBook {
     public EditBox pattern;
     public RecipeTreeSet patternMatchingRecipes;
     public int patternListSize;
+
+
+    // mouse button as idk why
+    public static final int LMB = 1;
+    public static final int RMB = 3;
 
     /**
      * Factory method to create the correct RecipeBook instance.
@@ -162,10 +169,10 @@ public abstract class AbstractRecipeBook {
     protected int drawSetOfRecipes(GuiGraphicsExtractor context, RecipeTreeSet treeSet, int xpos, int ypos, int screenBottom, int mouseX, int mouseY) {
         if (treeSet == null || treeSet.isEmpty()) return ypos;
 
-        if (ModConfig.get().debug) {
-            context.outline(0,0,100,100,0xFFFF0000);
-            context.fill(0,0,50,50,0xFFFF0000);
-        }
+//        if (ModConfig.get().debug) {
+//            context.outline(0,0,100,100,0xFFFF0000);
+//            context.fill(0,0,50,50,0xFFFF0000);
+//        }
 
         mouseX+=containerLeft;
         mouseY+=containerTop;
@@ -431,9 +438,11 @@ public abstract class AbstractRecipeBook {
         } else if (pattern.isFocused()) {
             pattern.keyPressed(input);
             updatePatternMatch();
-        } else if (EasierCrafting.refreshRecipeKey.isDown()){
+        } else if (EasierCrafting.refreshRecipeKey.matches(input)){
             // pressed refresh key
             recipeUpdateTime = System.currentTimeMillis();
+        } else if (client.options.keyDrop.matches(input) && player.getMainHandItem().isEmpty()){
+            throwDown = true;
         } else {
             return false;
         }
@@ -456,6 +465,7 @@ public abstract class AbstractRecipeBook {
 
     protected void slotClick(int slot, int mouseButton, ContainerInput clickType) {
         interactionManager.handleContainerInput(screenHandler.containerId, slot,mouseButton,clickType,player);
+        EasierCrafting.debug("MB: "+mouseButton+" | slot: "+slot+" | type: "+clickType);
     }
 
     protected void drawHoloItem(GuiGraphicsExtractor context, int x, int y, ItemStack stack){
@@ -539,7 +549,11 @@ public abstract class AbstractRecipeBook {
     }
 
     public boolean isHoldingButton(int button){
-        return InputConstants.isKeyDown(window, button);
+        return InputConstants.isKeyDown(button);
+    }
+
+    boolean isHoldingThrow() {
+        return InputConstants.isKeyDown(InputConstants.getKey(Minecraft.getInstance().options.keyDrop.saveString()).getValue());
     }
 
 

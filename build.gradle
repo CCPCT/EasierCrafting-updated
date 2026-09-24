@@ -8,7 +8,7 @@ repositories {
 }
 
 // 1. Determine which version we are targeting (default to 1.21.2)
-def target = project.hasProperty('target') ? project.property('target') : '26.2'
+def target = project.hasProperty('target') ? project.property('target') : '26.3'
 
 // 2. Point to the file in the 'versions' folder
 def propsFile = file("versions/${target}.properties")
